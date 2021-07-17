@@ -2,6 +2,9 @@ var canvas = document.createElement("canvas");
 var gameArea = document.getElementById("game-area");
 let c = canvas.getContext('2d');
 
+let shotSize = 5;
+let shotSpeed = 5;
+let spaceShipSpeed = 5;
 let score = 0;
 let playerName;
 let gameOver = false;
@@ -26,28 +29,28 @@ var spaceShip =
     },
     moveLeft() {
         this.prevPosition.x = this.currentPosition.x;
-        this.currentPosition.x--;
+        this.currentPosition.x -= spaceShipSpeed;
         this.prevPosition.y = this.currentPosition.y;
         drawSpaceShip();
     },
     moveRight() {
         this.prevPosition.x = this.currentPosition.x;
-        this.currentPosition.x++;
+        this.currentPosition.x += spaceShipSpeed;
         this.prevPosition.y = this.currentPosition.y;
         drawSpaceShip();
     },
     moveUp() {
         this.prevPosition.y = this.currentPosition.y;
-        this.currentPosition.y--;
+        this.currentPosition.y -= spaceShipSpeed;
         this.prevPosition.x = this.currentPosition.x;
         drawSpaceShip();
     },
     moveDown() {
         this.prevPosition.y = this.currentPosition.y;
-        this.currentPosition.y++;
+        this.currentPosition.y += spaceShipSpeed;
         this.prevPosition.x = this.currentPosition.x;
         drawSpaceShip();
-    }    
+    }
 }
 
 function drawSpaceShip() {
@@ -58,8 +61,47 @@ function drawSpaceShip() {
     c.fillRect(spaceShip.currentPosition.x - spaceShip.width/2, spaceShip.currentPosition.y - spaceShip.height/2, spaceShip.width, spaceShip.height);
 }
 
+class Shot {
+    constructor() {
+        this.x = spaceShip.currentPosition.x - spaceShip.width / 2 - shotSize;
+        this.y = spaceShip.currentPosition.y;
+    }
+    draw() {
+        c.fillStyle = 'red';
+        c.fillRect(this.x,this.y,shotSize,shotSize);
+    }
+    update() {
+        c.fillStyle = 'black';
+        c.fillRect(this.x, this.y, shotSize, shotSize);
+        this.x -= shotSpeed;
+        this.draw();
+    }
+}
+
+function animateShot(shot)
+{
+    animate();
+    function animate()
+        {
+            if(shot.x > -shotSize)
+            {   
+                requestAnimationFrame(animate);
+                shot.update();
+            }
+        }
+}
+
+function shoot() {
+    let tempShot = new Shot();
+    tempShot.draw();
+    animateShot(tempShot);
+}
 
 document.body.onkeydown = function(e) {
+    if(e.keyCode == 32 || e.keyCode == 37 || e.keyCode == 38 || e.keyCode == 39 || e.keyCode == 40)
+        e.preventDefault();
+    if(e.keyCode == 32)
+        shoot(); 
     if(e.keyCode == 37)
         spaceShip.moveLeft();
     if(e.keyCode == 38)
@@ -70,7 +112,7 @@ document.body.onkeydown = function(e) {
         spaceShip.moveDown();
 }
 
-c.fillStyle = "rgba(0,0,0,1)";
+c.fillStyle = 'black';
 c.fillRect(0,0,canvas.width,canvas.height);
 drawSpaceShip();
 
