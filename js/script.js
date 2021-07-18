@@ -18,6 +18,7 @@ let playerName;
 let gameOver = false;
 
 var aliens = [];
+var shots = [];
 
 gameArea.appendChild(canvas);
 canvas.height = gameArea.clientHeight;
@@ -41,34 +42,33 @@ var spaceShip =
         this.prevPosition.x = this.currentPosition.x;
         this.currentPosition.x -= spaceShipSpeed;
         this.prevPosition.y = this.currentPosition.y;
-        drawSpaceShip();
+        this.drawSpaceShip();
     },
     moveRight() {
         this.prevPosition.x = this.currentPosition.x;
         this.currentPosition.x += spaceShipSpeed;
         this.prevPosition.y = this.currentPosition.y;
-        drawSpaceShip();
+        this.drawSpaceShip();
     },
     moveUp() {
         this.prevPosition.y = this.currentPosition.y;
         this.currentPosition.y -= spaceShipSpeed;
         this.prevPosition.x = this.currentPosition.x;
-        drawSpaceShip();
+        this.drawSpaceShip();
     },
     moveDown() {
         this.prevPosition.y = this.currentPosition.y;
         this.currentPosition.y += spaceShipSpeed;
         this.prevPosition.x = this.currentPosition.x;
-        drawSpaceShip();
+        this.drawSpaceShip();
+    },
+    drawSpaceShip() {
+        c.fillStyle = 'black';
+        c.fillRect(spaceShip.prevPosition.x - spaceShip.width/2, spaceShip.prevPosition.y - spaceShip.height/2, spaceShip.width, spaceShip.height);
+        c.fillStyle = 'white';
+        c.fillRect(spaceShip.currentPosition.x - spaceShip.width/2, spaceShip.currentPosition.y - spaceShip.height/2, spaceShip.width, spaceShip.height);
     }
-}
 
-function drawSpaceShip() {
-
-	c.fillStyle = 'black';
-	c.fillRect(spaceShip.prevPosition.x - spaceShip.width/2, spaceShip.prevPosition.y - spaceShip.height/2, spaceShip.width, spaceShip.height);
-	c.fillStyle = 'white';
-    c.fillRect(spaceShip.currentPosition.x - spaceShip.width/2, spaceShip.currentPosition.y - spaceShip.height/2, spaceShip.width, spaceShip.height);
 }
 
 class Alien {
@@ -92,20 +92,22 @@ function animateAlien(alien)
 {
     animate();
     function animate(){
-        if(alien.x < canvas.width + alienSize)
+        if(alien.x < canvas.width + alienSize && aliens.includes(alien))
         {  
             if(alien.x + alienSize >= spaceShip.currentPosition.x - spaceShip.width/2 && alien.x + alienSize <= spaceShip.currentPosition.x + spaceShip.width/2)
                 if(alien.y + alienSize >= spaceShip.currentPosition.y - spaceShip.height/2 && alien.y <= spaceShip.currentPosition.y + spaceShip.height/2)
-                gameOver = true;
+                    gameOver = true;
 
             if(gameOver == false)
-            {
+            {   
                 requestAnimationFrame(animate);
                 alien.update();
             }
         }
-        else 
+        else if(aliens.includes(alien))
+        {
             aliens.splice(aliens.indexOf(alien),1);
+        }
     }
 }
 
@@ -115,10 +117,10 @@ function updateTime() {
     {
         currentTime = 0;
         time = timeGap[Math.round(Math.random() * (timeGap.length-1))];
-        let alienTemp = new Alien();
-        aliens.push(alienTemp);
-        alienTemp.draw();
-        animateAlien(alienTemp);
+        let alien = new Alien();
+        aliens.push(alien);
+        alien.draw();
+        animateAlien(alien);
     }
     if(gameOver == false){
         t = setTimeout(function() {
@@ -131,6 +133,7 @@ class Shot {
     constructor() {
         this.x = spaceShip.currentPosition.x - spaceShip.width / 2 - shotSize;
         this.y = spaceShip.currentPosition.y;
+        shots.push(this);
     }
     draw() {
         c.fillStyle = 'red';
@@ -149,23 +152,40 @@ function animateShot(shot)
     animate();
     function animate()
         {
-            if(shot.x > -shotSize)
+            if(shot.x > -shotSize && shots.includes(shot))
             {   
                 requestAnimationFrame(animate);
+                checkAlienShot();
                 shot.update();
             }
-            aliens.forEach(alien => {
-                if(shot.x + shotSize <= alien.x && shot.x >= alien.x + alienSize)
-                    if(shot.y <=  alien.y + alienSize  && shot.y + shotSize >= alien.y)
-                        aliens.splice(aliens.indexOf(alien),1);
-            })
+            else if(shots.includes(shot))
+            {
+                shots.splice(shots.indexOf(shot),1);
+            }
         }
 }
 
 function shoot() {
-    let tempShot = new Shot();
-    tempShot.draw();
-    animateShot(tempShot);
+    let shot = new Shot();
+    shot.draw();
+    animateShot(shot);
+}
+
+function checkAlienShot() {
+    aliens.forEach(alien => {
+        shots.forEach(shot => {
+            
+            if(shot.x + shotSize >= alien.x && shot.x <= alien.x + alienSize)
+            {
+                if(shot.y <=  alien.y + alienSize  && shot.y + shotSize >= alien.y)
+                {
+                    shots.splice(shots.indexOf(shot),1);
+                    aliens.splice(aliens.indexOf(alien),1);
+                    c.fillStyle = 'black';
+                    c.fillRect(alien.x < shot.x ? alien.x : shot.x, alien.y < shot.y ? alien.y : shot.y, alienSize + shotSize, alienSize + shotSize);
+                }
+            }
+    })})    
 }
 
 document.body.onkeydown = function(e) {
@@ -186,5 +206,5 @@ document.body.onkeydown = function(e) {
 c.fillStyle = 'black';
 c.fillRect(0,0,canvas.width,canvas.height);
 
-drawSpaceShip();
+spaceShip.drawSpaceShip();
 updateTime();
