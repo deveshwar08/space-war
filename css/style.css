@@ -1,9 +1,69 @@
 body {
 	display: flex;
 	flex-direction: column;
-
 }
 #game-area {
 	width: 100%;
 	height: 70vh;
+}
+#score-area {
+	height: 200px;
+	width: 100vw;
+}
+#score-popup {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%) scale(0);
+	transition: 200ms ease-in-out;
+	border: 1px solid black;
+	border-radius: 5px;
+	z-index: 1;
+	background-color: white;
+	width: 200px;
+	max-width: 35%;
+}
+
+#score-popup.active {
+	transform: translate(-50%, -50%) scale(1);
+}
+
+#score-popup-header {
+	text-align: right;
+	padding-top: 2px;
+	padding-right: 2px;
+}
+
+#close-button {
+	cursor: pointer;
+	border: none;
+	outline: none;
+	background: none;
+	font-size: 1.25 rem;
+	font-weight: bold;
+}
+
+#score-popup-body {
+	padding: 10px 15px;
+}
+
+#overlay {
+	position: fixed;
+	transition: 200ms ease-in-out;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	background-color: rgba(0, 0, 0, 0.5);
+	pointer-events: none;
+	opacity: 0;
+}
+
+#overlay.active {
+	pointer-events: all;
+	opacity: 1;
+}
+
+#score-area {
+	text-align: center;
 }

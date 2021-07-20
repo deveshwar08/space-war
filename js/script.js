@@ -12,10 +12,12 @@ let alienSpeed = 5;
 let timeGap = [1];
 let time = timeGap[Math.round(Math.random() * (timeGap.length-1))];
 let currentTime = 0;
-
+let timePlayed = 0;
+let level = 1;
 let score = 0;
 let playerName;
 let gameOver = false;
+let gameStarted = false;
 
 var aliens = [];
 var shots = [];
@@ -71,6 +73,75 @@ var spaceShip =
 
 }
 
+function timeKeeper(){
+    timePlayed++;
+    if(timePlayed >= level*20)
+    {
+        level++;
+        alienSpeed += 2;
+    }
+    document.getElementById("live-score").innerHTML = "Live Score: " + score;
+    document.getElementById("live-level").innerHTML = "Level : " + level;
+    t = setTimeout(function() {
+        timeKeeper();
+    }, 1000);
+}
+
+function displayScore()
+{
+    document.getElementById("score-area").innerHTML = "";
+    if(localStorage.getItem("Highscore") == null)
+    {
+        return;
+    }
+    let retrievedHighScore = JSON.parse(localStorage.getItem("Highscore"));
+    let h1 = document.createElement("h1");
+    let highScoreText = document.createTextNode("HIGH SCORE");
+    h1.appendChild(highScoreText);
+    let h21 = document.createElement("h2");
+    let highScoreName = document.createTextNode("Name : " + retrievedHighScore[0]);
+    let h22 = document.createElement("h2");
+    let highScoreScore = document.createTextNode("Score : " + retrievedHighScore[1]);
+    h21.appendChild(highScoreName);
+    h22.appendChild(highScoreScore);
+    document.getElementById("score-area").appendChild(h1);
+    document.getElementById("score-area").appendChild(h21);
+    document.getElementById("score-area").appendChild(h22);
+}
+function closePopup(){
+    document.getElementById("overlay").classList.remove("active");
+    document.getElementById("score-popup").classList.remove("active");
+    document.getElementById("score-popup-body").innerText = ""; 
+    location.reload();
+}
+
+function popUpScore(){
+    document.getElementById("overlay").classList.add("active");
+    document.getElementById("score-popup").classList.add("active");
+    let highestScore;
+    if(localStorage.getItem("Highscore") != null)
+    {
+        let retrievedHighScore = JSON.parse(localStorage.getItem("Highscore"));
+        highestScore = retrievedHighScore[1];
+    }
+    else
+        highestScore = score;
+    document.getElementById("score-popup-body").innerHTML = ("Score : " + score + "<br/>" + "High Score : " + highestScore); 
+    let highScore = [];
+    highScore[0] = playerName;
+    highScore[1] = score;
+    if(localStorage.getItem("Highscore") == null)
+        localStorage.setItem("Highscore",JSON.stringify(highScore));
+    else{
+        let retrievedHighScore = JSON.parse(localStorage.getItem("Highscore"));
+        if(retrievedHighScore[1] <= score)
+        {
+            localStorage.removeItem("Highscore");
+            localStorage.setItem("Highscore",JSON.stringify(highScore));
+        }
+    }
+}
+
 class Alien {
     constructor() {
         this.x = alienSize;
@@ -96,7 +167,11 @@ function animateAlien(alien)
         {  
             if(alien.x + alienSize >= spaceShip.currentPosition.x - spaceShip.width/2 && alien.x + alienSize <= spaceShip.currentPosition.x + spaceShip.width/2)
                 if(alien.y + alienSize >= spaceShip.currentPosition.y - spaceShip.height/2 && alien.y <= spaceShip.currentPosition.y + spaceShip.height/2)
+                {
                     gameOver = true;
+                    playerName = window.prompt("Hey!What's your name");
+                    popUpScore();
+                }
 
             if(gameOver == false)
             {   
@@ -179,6 +254,7 @@ function checkAlienShot() {
             {
                 if(shot.y <=  alien.y + alienSize  && shot.y + shotSize >= alien.y)
                 {
+                    score += level;
                     shots.splice(shots.indexOf(shot),1);
                     aliens.splice(aliens.indexOf(alien),1);
                     c.fillStyle = 'black';
@@ -201,10 +277,16 @@ document.body.onkeydown = function(e) {
         spaceShip.moveRight();
     if(e.keyCode == 40 && gameOver == false)
         spaceShip.moveDown();
+    if(e.keyCode && gameStarted == false)
+    {
+        gameStarted = true;
+        updateTime();
+        timeKeeper();
+    }
 }
 
 c.fillStyle = 'black';
 c.fillRect(0,0,canvas.width,canvas.height);
 
 spaceShip.drawSpaceShip();
-updateTime();
+displayScore();

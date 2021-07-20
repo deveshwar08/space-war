@@ -10,20 +10,32 @@
         <title>Space War</title>
     </head>
     <body>
-	<div id="game-title">
-		<h1 class="text-center">SPACE WAR</h1>
-		<p id="live-score"></p>
+	<h1 class="text-center">SPACE WAR</h1>
+	<div class="d-flex justify-content-end">
+		<div id="live-score" class="text-left"></div>
+		<div id="live-level" class="text-right"></div>
 	</div>
-	<div id="game-area" class="bg-dark"></div>
+	<div id="game-area"></div>
 	<div id="instructions">
 		<h3>Instructions:</h3>
 		<ul>
+			<li>Press any key to start the game</li>
 			<li>Press arrow keys <kbd>&larr;</kbd><kbd>&uarr;</kbd><kbd>&darr;</kbd><kbd>&rarr;</kbd> to move the Spaceship</li>
 			<li>Press <kbd>space</kbd> to shoot aliens</li>
 			<li>Avoid aliens crashing the Spaceship</li>
+			
 		</ul>
 	</div>
-	<div id="score-area"></div>
+	<div id = "score-popup">
+            <div id = "score-popup-header">
+                <button id="close-button" onclick="closePopup()">&times;</button>
+            </div>
+            <div id="score-popup-body">
+
+            </div>
+        </div>
+        <div id="score-area"></div>
+        <div id="overlay"></div>
 	<script src="js/script.js"></script>
     </body>
 </html>
