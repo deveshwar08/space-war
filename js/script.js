@@ -19,6 +19,13 @@ let playerName;
 let gameOver = false;
 let gameStarted = false;
 
+let spaceShipImage = document.createElement('img');
+spaceShipImage.setAttribute("src","res/spaceship.png");
+let alienImage = document.createElement('img');
+alienImage.setAttribute("src","res/alien.png")
+let laserImage = document.createElement('img');
+laserImage.setAttribute("src","res/laser.png")
+
 var aliens = [];
 var shots = [];
 
@@ -28,11 +35,11 @@ canvas.width = gameArea.clientWidth;
 
 var spaceShip =
 {
-    width: 8,
-    height: 22,
+    width: 50,
+    height: 50,
     prevPosition:
     {
-        x: canvas.width,
+        x: canvas.width - this.width,
         y: canvas.height/2
     },
     currentPosition:
@@ -65,10 +72,8 @@ var spaceShip =
         this.drawSpaceShip();
     },
     drawSpaceShip() {
-        c.fillStyle = 'black';
-        c.fillRect(spaceShip.prevPosition.x - spaceShip.width/2, spaceShip.prevPosition.y - spaceShip.height/2, spaceShip.width, spaceShip.height);
-        c.fillStyle = 'white';
-        c.fillRect(spaceShip.currentPosition.x - spaceShip.width/2, spaceShip.currentPosition.y - spaceShip.height/2, spaceShip.width, spaceShip.height);
+        c.clearRect(this.prevPosition.x, this.prevPosition.y, this.width, this.height);
+        c.drawImage(spaceShipImage,this.currentPosition.x,this.currentPosition.y,this.width,this.height);
     }
 
 }
@@ -144,16 +149,16 @@ function popUpScore(){
 
 class Alien {
     constructor() {
-        this.x = alienSize;
+        this.x = 0;
         this.y = Math.round(Math.random() * canvas.height);
+        this.width = 30;
+        this.height = 15;
     }
     draw() {
-        c.fillStyle = 'white';
-        c.fillRect(this.x, this.y, alienSize, alienSize);
+        c.drawImage(alienImage,this.x,this.y,this.width,this.height);
     }
     update() {
-        c.fillStyle = 'black';
-        c.fillRect(this.x, this.y, alienSize, alienSize);
+        c.clearRect(this.x, this.y, this.width, this.height);
         this.x += alienSpeed;
         this.draw();
     }
@@ -163,10 +168,10 @@ function animateAlien(alien)
 {
     animate();
     function animate(){
-        if(alien.x < canvas.width + alienSize && aliens.includes(alien))
+        if(alien.x < canvas.width + alien.width && aliens.includes(alien))
         {  
-            if(alien.x + alienSize >= spaceShip.currentPosition.x - spaceShip.width/2 && alien.x + alienSize <= spaceShip.currentPosition.x + spaceShip.width/2)
-                if(alien.y + alienSize >= spaceShip.currentPosition.y - spaceShip.height/2 && alien.y <= spaceShip.currentPosition.y + spaceShip.height/2)
+            if(alien.x + alien.width >= spaceShip.currentPosition.x && alien.x + alien.width <= spaceShip.currentPosition.x + spaceShip.width)
+                if(alien.y + alien.height >= spaceShip.currentPosition.y && alien.y <= spaceShip.currentPosition.y + spaceShip.height)
                 {
                     gameOver = true;
                     playerName = window.prompt("Hey!What's your name");
@@ -206,17 +211,17 @@ function updateTime() {
 
 class Shot {
     constructor() {
-        this.x = spaceShip.currentPosition.x - spaceShip.width / 2 - shotSize;
-        this.y = spaceShip.currentPosition.y;
-        shots.push(this);
+        this.x = spaceShip.currentPosition.x;
+        this.y = spaceShip.currentPosition.y + spaceShip.height/2;
+        this.width = 7;
+        this.height = 3;
     }
     draw() {
-        c.fillStyle = 'red';
-        c.fillRect(this.x,this.y,shotSize,shotSize);
+        c.drawImage(laserImage,this.x,this.y,this.width,this.height);
+
     }
     update() {
-        c.fillStyle = 'black';
-        c.fillRect(this.x, this.y, shotSize, shotSize);
+        c.clearRect(this.x, this.y, this.width, this.height);
         this.x -= shotSpeed;
         this.draw();
     }
@@ -227,7 +232,7 @@ function animateShot(shot)
     animate();
     function animate()
         {
-            if(shot.x > -shotSize && shots.includes(shot))
+            if(shot.x > -shot.width && shots.includes(shot))
             {   
                 requestAnimationFrame(animate);
                 checkAlienShot();
@@ -242,6 +247,7 @@ function animateShot(shot)
 
 function shoot() {
     let shot = new Shot();
+    shots.push(shot);
     shot.draw();
     animateShot(shot);
 }
@@ -250,15 +256,14 @@ function checkAlienShot() {
     aliens.forEach(alien => {
         shots.forEach(shot => {
             
-            if(shot.x + shotSize >= alien.x && shot.x <= alien.x + alienSize)
+            if(shot.x + shot.width >= alien.x && shot.x <= alien.x + alien.width)
             {
-                if(shot.y <=  alien.y + alienSize  && shot.y + shotSize >= alien.y)
+                if(shot.y <=  alien.y + alien.height  && shot.y + shot.height >= alien.y)
                 {
                     score += level;
                     shots.splice(shots.indexOf(shot),1);
                     aliens.splice(aliens.indexOf(alien),1);
-                    c.fillStyle = 'black';
-                    c.fillRect(alien.x < shot.x ? alien.x : shot.x, alien.y < shot.y ? alien.y : shot.y, alienSize + shotSize, alienSize + shotSize);
+                    c.clearRect(alien.x < shot.x ? alien.x : shot.x, alien.y < shot.y ? alien.y : shot.y, alien.width + shot.width, alien.height + shot.height);
                 }
             }
     })})    
@@ -284,9 +289,6 @@ document.body.onkeydown = function(e) {
         timeKeeper();
     }
 }
-
-c.fillStyle = 'black';
-c.fillRect(0,0,canvas.width,canvas.height);
 
 spaceShip.drawSpaceShip();
 displayScore();
