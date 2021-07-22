@@ -2,12 +2,8 @@ var canvas = document.createElement("canvas");
 var gameArea = document.getElementById("game-area");
 let c = canvas.getContext('2d');
 
-let shotSize = 5;
 let shotSpeed = 5;
-
-let spaceShipSpeed = 5;
-
-let alienSize = 10; 
+let spaceShipSpeed = 5; 
 let alienSpeed = 5;
 let timeGap = [1];
 let time = timeGap[Math.round(Math.random() * (timeGap.length-1))];
