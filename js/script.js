@@ -5,11 +5,12 @@ let c = canvas.getContext('2d');
 let shotSpeed = 5;
 let spaceShipSpeed = 5; 
 let alienSpeed = 5;
-let timeGap = [1];
+let timeGap = [0.75,1,1.25,1.5];
+let alienLevel = [1];
 let time = timeGap[Math.round(Math.random() * (timeGap.length-1))];
 let currentTime = 0;
 let timePlayed = 0;
-let level = 1;
+let gameLevel = 1;
 let score = 0;
 let playerName;
 let gameOver = false;
@@ -35,54 +36,65 @@ var spaceShip =
     height: 50,
     prevPosition:
     {
-        x: canvas.width - this.width,
+        x: (canvas.width),
         y: canvas.height/2
     },
     currentPosition:
     {
-	    x: canvas.width,
+	    x: (canvas.width - 50),
         y: canvas.height/2
     },
     moveLeft() {
-        this.prevPosition.x = this.currentPosition.x;
-        this.currentPosition.x -= spaceShipSpeed;
-        this.prevPosition.y = this.currentPosition.y;
-        this.drawSpaceShip();
+        if(this.currentPosition.x >= 0)
+        {
+            this.prevPosition.x = this.currentPosition.x;
+            this.currentPosition.x -= spaceShipSpeed;
+            this.prevPosition.y = this.currentPosition.y;
+            this.drawSpaceShip();
+        }
     },
     moveRight() {
-        this.prevPosition.x = this.currentPosition.x;
-        this.currentPosition.x += spaceShipSpeed;
-        this.prevPosition.y = this.currentPosition.y;
-        this.drawSpaceShip();
+        if(this.currentPosition.x + this.width <= canvas.width)
+        {
+            this.prevPosition.x = this.currentPosition.x;
+            this.currentPosition.x += spaceShipSpeed;
+            this.prevPosition.y = this.currentPosition.y;
+            this.drawSpaceShip();
+        }
     },
     moveUp() {
-        this.prevPosition.y = this.currentPosition.y;
-        this.currentPosition.y -= spaceShipSpeed;
-        this.prevPosition.x = this.currentPosition.x;
-        this.drawSpaceShip();
+        if(this.currentPosition.y >= 0)
+        {
+            this.prevPosition.y = this.currentPosition.y;
+            this.currentPosition.y -= spaceShipSpeed;
+            this.prevPosition.x = this.currentPosition.x;
+            this.drawSpaceShip();
+        }
     },
     moveDown() {
-        this.prevPosition.y = this.currentPosition.y;
-        this.currentPosition.y += spaceShipSpeed;
-        this.prevPosition.x = this.currentPosition.x;
-        this.drawSpaceShip();
+        if(this.currentPosition.y + this.height <= canvas.height)
+        {
+            this.prevPosition.y = this.currentPosition.y;
+            this.currentPosition.y += spaceShipSpeed;
+            this.prevPosition.x = this.currentPosition.x;
+            this.drawSpaceShip();
+        }
     },
     drawSpaceShip() {
         c.clearRect(this.prevPosition.x, this.prevPosition.y, this.width, this.height);
         c.drawImage(spaceShipImage,this.currentPosition.x,this.currentPosition.y,this.width,this.height);
     }
-
 }
 
 function timeKeeper(){
     timePlayed++;
-    if(timePlayed >= level*20)
+    if(timePlayed >= gameLevel*20)
     {
-        level++;
+        gameLevel++;
         alienSpeed += 2;
     }
     document.getElementById("live-score").innerHTML = "Live Score: " + score;
-    document.getElementById("live-level").innerHTML = "Level : " + level;
+    document.getElementById("live-level").innerHTML = "Level : " + gameLevel;
     t = setTimeout(function() {
         timeKeeper();
     }, 1000);
@@ -144,11 +156,41 @@ function popUpScore(){
 }
 
 class Alien {
-    constructor() {
+    constructor(alienLevel) {
         this.x = 0;
         this.y = Math.round(Math.random() * canvas.height);
-        this.width = 30;
-        this.height = 15;
+        this.level = alienLevel;
+        switch(this.level)
+        {
+            case 1:
+                {
+                    this.width = 30;
+                    this.height = 15;
+                    this.hp = 1;
+                    break;
+                }
+            case 2:
+                {
+                    this.width = 50;
+                    this.height = 25;
+                    this.hp = 2;
+                    break;
+                }
+            case 3:
+                {
+                    this.width = 70;
+                    this.height = 35;
+                    this.hp = 3;
+                    break;
+                }
+            default:
+                {
+                    this.width = 30;
+                    this.height = 15;
+                    this.level = 1;
+                    this.hp = 1;
+                } 
+        }
     }
     draw() {
         c.drawImage(alienImage,this.x,this.y,this.width,this.height);
@@ -193,10 +235,15 @@ function updateTime() {
     {
         currentTime = 0;
         time = timeGap[Math.round(Math.random() * (timeGap.length-1))];
-        let alien = new Alien();
+        let alien = new Alien(alienLevel[Math.round(Math.random() * (alienLevel.length - 1))]);
         aliens.push(alien);
         alien.draw();
         animateAlien(alien);
+        if(score >= 10 && alienLevel.includes(2) == false)
+            alienLevel.push(2);
+        else if(score >= 20 && alienLevel.includes(3) == false)
+            alienLevel.push(3);
+
     }
     if(gameOver == false){
         t = setTimeout(function() {
@@ -256,10 +303,16 @@ function checkAlienShot() {
             {
                 if(shot.y <=  alien.y + alien.height  && shot.y + shot.height >= alien.y)
                 {
-                    score += level;
+                    alien.hp -= 1;
                     shots.splice(shots.indexOf(shot),1);
-                    aliens.splice(aliens.indexOf(alien),1);
-                    c.clearRect(alien.x < shot.x ? alien.x : shot.x, alien.y < shot.y ? alien.y : shot.y, alien.width + shot.width, alien.height + shot.height);
+                    console.log(alien.hp);
+                    if(alien.hp == 0)
+                    {                       
+                        score += (gameLevel + alien.level);
+                        shots.splice(shots.indexOf(shot),1);
+                        aliens.splice(aliens.indexOf(alien),1);
+                        c.clearRect(alien.x < shot.x ? alien.x : shot.x, alien.y < shot.y ? alien.y : shot.y, alien.width + shot.width, alien.height + shot.height);
+                    }
                 }
             }
     })})    
